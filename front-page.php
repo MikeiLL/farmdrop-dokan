@@ -21,9 +21,9 @@ if (have_posts()) {
 		echo '<div id="howworks">';
 		echo '<h2>How It Works</h2>';
 		echo '<ul class="columns">';
-		echo '<li class="w33 padded centertext"><div class="step"><span>1</span></div><h3>Shop</h3><h4>Fill your cart anytime during the open markets days of Saturday thru Wednesday.</h4></li>';
-		echo '<li class="w33 padded centertext"><div class="step"><span>2</span></div><h3>Pay Online</h3><h4>Make an easy online payment selecting up to 9 producers and get all the food you need for the week.</h4></li>';
-		echo '<li class="w33 padded centertext"><div class="step"><span>3</span></div><h3>Pick Up</h3><h4>Your order will be ready for you at Fairwinds Florist on Thursday between 2PM and 5PM</h4></li>';
+		echo '<li class="w33 padded centertext"><div class="step"><span>1</span></div><h3>Shop</h3><h4>Fill your cart anytime during the open markets days of Saturday thru Friday.</h4></li>';
+		echo '<li class="w33 padded centertext"><div class="step"><span>2</span></div><h3>Pay Online</h3><h4>Choose from multiple producers and pay online through Stripe for the best local food while supporting food security.</h4></li>';
+		echo '<li class="w33 padded centertext"><div class="step"><span>3</span></div><h3>Pick Up</h3><h4>Your order will be at Floret on Friday between 2PM and 6PM together with the Climate to Thrive Winter Farm Stand.</h4></li>';
 
 		echo '</ul>';
 		echo '</div>';
@@ -36,9 +36,10 @@ if (have_posts()) {
 			$status = '<h3 class="market">Open</h3>';
 		} else {
 			$status = '<h3 class="market">Closed</h3>';
+			echo '<div id="pop-closed" class="pop"><div class="wrap-modal"><div class="modal-pop padded centertext"><h3 class="centertext">Thank you for visiting MDI FarmDrop</h3><div class="padded">We are open from Saturday 10am - Thursday 10am. Please pick up your order on Friday 2-6pm at Floret Florist Shop  (1043 Main Street, Mount Desert, Maine (207) 460-9162)<br/>Contact us with any questions: farmdrop@healthyacadia.org</div></div></div></div>';
 		}
 
-		echo '<div class="centerall featured" style="background-image:url(' . get_stylesheet_directory_uri() . '/images/slide-market.jpg)"><div class="center"><div class="centered block"><h2>The Market</h2>' . $status . '</div></div></div>';
+		echo '<a href="/producer/"><div class="centerall featured" style="background-image:url(' . get_stylesheet_directory_uri() . '/images/slide-market.jpg)"><div class="center"><div class="centered block"><h2>The Market</h2>' . $status . '</div></div></div></a>';
 
 		$args = array('role' => 'shop_manager', 'orderby' => 'user_nicename', 'order' => 'ASC', 'meta_query' => array( array('key' => 'dokan_enable_selling', 'value' => 'yes', 'compare' => '=')));
 
@@ -48,7 +49,7 @@ if (have_posts()) {
 			//inspect($user -> ID);
 			$userdata = get_user_meta($user -> ID);
 			$description = $userdata['description'][0];
-			inspect($userdata);
+			//inspect($userdata);
 
 			$user_meta = unserialize($userdata['dokan_profile_settings'][0]);
 			//inspect(unserialize($userdata['dokan_profile_settings'][0]));

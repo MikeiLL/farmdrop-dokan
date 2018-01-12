@@ -37,7 +37,10 @@
     <div class="copy-container">
         <div class="container">
             <div class="row">
-                <div class="col-md-12">
+                <div class="centertext">
+                    <?php echo do_shortcode('[mc4wp_form id="477"]'); ?>
+                </div>
+                <div class="col-md-12 distanttop">
                     <div class="footer-copy">
                         <div class="col-md-6 site-info">
                             <?php
@@ -68,9 +71,26 @@
 <!-- #colophon .site-footer -->
 </div>
 <!-- #page .hfeed .site -->
-<?php wp_footer(); ?>
+<?php wp_footer();
+	//
+	global $messages;
+	//
+	// $farmdrop_fee_product = get_field('farmdrop_fee_product', 'options');
+	inspect($messages);
+?>
 <div id="yith-wcwl-popup-message" style="display:none;">
     <div id="yith-wcwl-message"></div>
 </div>
+<script type="text/javascript">
+	jQuery(document).ready(function($) {
+		$('.dokan-ajax-search-textfield').attr('placeholder', '...');
+		$('#link-story').click(function() {
+			$('#pop-story').fadeIn(500);
+		});
+		$('.pop .closepop,.pop .cancel').click(function() {
+			$(this).closest('.pop').fadeOut(500);
+		});
+	}); 
+</script>
 </body>
 </html>

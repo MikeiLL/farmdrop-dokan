@@ -1,5 +1,5 @@
 <?php
-$store_user =      dokan() -> vendor -> get(get_query_var('author'));
+$store_user =    dokan() -> vendor -> get(get_query_var('author'));
 $store_info = $store_user -> get_shop_info();
 $social_info = $store_user -> get_social_profiles();
 $store_tabs = dokan_get_store_tabs($store_user -> get_id());
@@ -49,7 +49,15 @@ if ('layout3' === $profile_layout) {
                     </div>
                     <?php if ( ! empty( $store_user->get_shop_name() ) && 'default' === $profile_layout ) { ?>
                         <h1 class="store-name"><?php echo esc_html($store_user -> get_shop_name()); ?></h1>
-                    <?php } ?>
+                    <?php }
+
+							// $userdata = get_user_meta($store_user -> get_id());
+							// $description = $userdata['description'][0];
+							// if($description){
+							// echo '<a class="centertext block" href="#" id="link-story"><strong>Our Story</strong></a><br/>';//<div class="hidden" id="bio">'.$description.'</div>'
+							// echo '<div id="pop-story" class="pop hiding" style="display: none;"><a class="closepop" href="#"></a><div class="wrap-modal"><div class="modal-pop padded"><h3 class="centertext">Our Story</h3><div class="padded">'.$description.'</div></div></div></div>';
+							// }
+                    ?>
                 </div>
 
                 <div class="profile-info">
@@ -58,7 +66,13 @@ if ('layout3' === $profile_layout) {
                     <?php } ?>
 
                     <ul class="dokan-store-info">
-                        <?php if ( isset( $store_address ) && !empty( $store_address ) ) { ?>
+                        <?php 
+                        
+                       
+                        
+                        
+                        
+                        if ( isset( $store_address ) && !empty( $store_address ) ) { ?>
                             <li class="dokan-store-address"><i class="fa fa-map-marker"></i>
                                 <?php echo $store_address; ?>
                             </li>
@@ -71,6 +85,23 @@ if ('layout3' === $profile_layout) {
                             </li>
                         <?php } ?>
 
+                        <?php 
+                        
+                        // $userdata = get_user_meta($store_user -> id);
+						// $user_meta = unserialize($userdata['dokan_profile_settings'][0]);
+						// inspect($store_user);
+						
+						
+						$user_info = get_userdata($store_user -> id);						
+						$website=$user_info->data->user_url;
+						//inspect($user_info->data->user_url);
+                        if ($website) { ?>
+                            <li class="dokan-store-website">      
+                            	<i class="fa fa-globe" aria-hidden="true"></i>                          
+                                <a target="_blank" href="<?php echo antispambot($website); ?>">Website</a>
+                            </li>
+                        <?php } ?>
+                        
                         <?php if ( $store_user->show_email() == 'yes' ) { ?>
                             <li class="dokan-store-email">
                                 <i class="fa fa-envelope-o"></i>
@@ -96,30 +127,16 @@ if ('layout3' === $profile_layout) {
                                 <?php } ?>
                             </ul>
                         </div>
-                    <?php }
-							$userdata = get_user_meta($store_user -> get_id());
-							$description = $userdata['description'][0];
-							if($description){
-							echo '<a class="centertext coolbutton" href="#" id="link-story">Our Story</a>';//<div class="hidden" id="bio">'.$description.'</div>'
-							echo '<div id="pop-story" class="pop hiding" style="display: none;"><a class="closepop" href="#"></a><div class="wrap-modal"><div class="modal-pop padded"><h3 class="centertext">Our Story</h3><div class="padded">'.$description.'</div></div></div></div>';
-							}
-						?>
+                    <?php } ?>
 </div> <!-- .profile-info -->
 </div><!-- .profile-info-summery -->
 </div><!-- .profile-info-summery-wrapper -->
 </div> <!-- .profile-info-box -->
 </div> <!-- .profile-frame -->
-<script type="text/javascript">
-	jQuery(document).ready(function($) {
-		$('#link-story').click(function() {
-			$('#pop-story').fadeIn(500);
-		});
-		$('.pop .closepop,.pop .cancel').click(function() {
-			$(this).closest('.pop').fadeOut(500);
-		});
-	}); 
-</script>
+
 <?php
+
+
 if ( $store_tabs ) { ?>
 <div class="dokan-store-tabs<?php echo $no_banner_class_tabs; ?>">
 <ul class="dokan-list-inline">
@@ -129,4 +146,12 @@ if ( $store_tabs ) { ?>
 <?php do_action('dokan_after_store_tabs', $store_user -> get_id()); ?>
 </ul>
 </div>
-<?php } ?>
+<?php }
+
+	$userdata = get_user_meta($store_user -> get_id());
+	$description = $userdata['description'][0];
+	if($description){
+	//echo '<a class="centertext coolbutton" href="#" id="link-story">Our Story</a>';//<div class="hidden" id="bio">'.$description.'</div>'
+	echo '<h3 class="centertext">Our Story</h3><div class="padded">'.$description.'</div>';
+	}
+?>

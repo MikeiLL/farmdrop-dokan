@@ -116,7 +116,9 @@
                     				<img width="225" height="125" src="<?php echo get_stylesheet_directory_uri(); ?>/images/logo.png"/>
                     				<?php
 									echo '<h2>' . get_bloginfo('description') . '</h2>';
+									//<div id="pop-story" class="pop"><a class="closepop" href="#"></a><div class="wrap-modal"><div class="modal-pop padded"><h3 class="centertext">Happiest of Holidays from the FarmDrop team!</h3><div class="padded">We look forward to opening the Blue Hill and Mount Desert Island Markets at the beginning of the New Year. Check back soon!</div><!-- <div class="padded"><a class="cancel button" href="#">Continue</a></div> --></div></div></div>
                     				?>
+                    				
                     			</div>
                     		</div>
                   		</div>
