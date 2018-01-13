@@ -31,14 +31,15 @@
 		 */
 		do_action('dokan_help_content_inside_before');
 		$day = date('w');
-		$week_start = date('m/d/Y', strtotime('-' . $day . ' days'));
+		$week_start = date('Y-m-d', strtotime('-' . $day . ' days'));
+		$saturday = date('m/d/Y', strtotime($week_start . ' -1 day'));
         ?>
         <article class="help-content-area">
             <h1>Weekly Orders</h1>
             <div>
                 <h4>Start Date</h4>
                 <div class="input _messages">
-                    <input type="text" value="<?php echo $week_start?>" id="startdate" class="date form-control dokan-ajax-search-textfield w50">
+                    <input type="text" value="<?php echo $saturday?>" id="startdate" class="date form-control dokan-ajax-search-textfield w50">
                     <br/>
                     <a id="cancel" href="javascript:getReport()" class="block button fullwidth inline w50 distanttop">Generate Report</a>
                 </div>
@@ -56,7 +57,7 @@
             <div>
             <h4>Start Date</h4>
             <div class="input _messages">
-            <input type="text" value="<?php echo $week_start?>" id="startdate_all" class="date form-control dokan-ajax-search-textfield w50">
+            <input type="text" value="<?php echo $saturday?>" id="startdate_all" class="date form-control dokan-ajax-search-textfield w50">
             <br/>
             <a id="cancel" href="javascript:getReportAll()" class="block button fullwidth inline w50 distanttop">Generate Report</a>
             </div>
@@ -89,6 +90,7 @@
 	echo '<script type="text/javascript">var webfixAjax = {"ajaxurl": "' . admin_url('admin-ajax.php') . '","nextNonce": "' . wp_create_nonce('myajax-next-nonce') . '"};</script>';
 ?>
 </div>
+<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
 <script src="<?php echo get_stylesheet_directory_uri(); ?>/js/jquery.date.min.js"></script>
 <script>
 	var startDate;
