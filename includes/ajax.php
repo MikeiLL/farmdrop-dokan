@@ -256,8 +256,43 @@ GROUP BY do.order_id
 ORDER BY p.post_date ASC";
 	//do.seller_id = %d AND
 	$orders = $wpdb -> get_results($sql);
-	//
+	function array_sort($array, $on, $order = SORT_ASC) {
 
+		$new_array = array();
+		$sortable_array = array();
+
+		if (count($array) > 0) {
+			foreach ($array as $k => $v) {
+				if (is_array($v)) {
+					foreach ($v as $k2 => $v2) {
+						if ($k2 == $on) {
+							$sortable_array[$k] = $v2;
+						}
+					}
+				} else {
+					$sortable_array[$k] = $v;
+				}
+			}
+
+			switch ($order) {
+				case SORT_ASC :
+					asort($sortable_array);
+					break;
+				case SORT_DESC :
+					arsort($sortable_array);
+					break;
+			}
+
+			foreach ($sortable_array as $k => $v) {
+				$new_array[$k] = $array[$k];
+			}
+		}
+
+		return $new_array;
+	}
+
+	$orders_by_customer = array_sort($orders, 'amount', SORT_DESC);
+	//
 	$items_all = array();
 
 	//$orders_html .= '<h2 style="margin-left:.5in; margin-right:.5in;margin-top:.1in;margin-bottom:0in;"><br/><br/>Weekly Orders for All vendors</h2><table style="width:100%;">';
@@ -271,12 +306,15 @@ ORDER BY p.post_date ASC";
 	// </tr>
 	// </thead>';
 
-	$orders_html .= '';
+	 $orders_html .= '';
 
 	if ($orders) {
 		$order_index = 0;
 		$stamp_orders = current_time('Ymd', 0);
+		// Build an array of "orders". Because it's multivendor, each customer may have multiple orders
+		// from the same checkout.
 		foreach ($orders as $order) {
+			// The WC_Order object contains date and payment information of transaction
 			$the_order = new WC_Order($order -> order_id);
 			//$messages[] = $order -> order_id;
 			$date_order = new DateTime($order -> post_date);
@@ -288,18 +326,23 @@ ORDER BY p.post_date ASC";
 			$customer_id = $the_order -> get_user_id();
 
 			if (!empty($user_info)) {
-				$user = '';
+				$user_display = '';
+				$sort_key = $user_info -> last_name;
 				if ($user_info -> first_name || $user_info -> last_name) {
-					$user .= esc_html($user_info -> first_name . ' ' . $user_info -> last_name);
+					$user_display .= esc_html($user_info -> first_name . ' ' . $user_info -> last_name);
 				} else {
-					$user .= esc_html($user_info -> display_name);
-				}
-			} else {
-				$user = esc_html(get_post_meta($order -> order_id, '_billing_first_name', true)) . ' ' . esc_html(get_post_meta($order -> order_id, '_billing_last_name', true)) . ' (guest)';
-				//$order -> billing_first_name
+					$user_display .= esc_html($user_info -> display_name);
+				}			} else {
+				// This is not a user, it's a guest which we are no longer allowing.
+				// Should we generate an error message?
+				// Potentially just remove it 
 				$customer_id = $stamp_orders . sprintf('%04d', $order_index);
+				$user = esc_html(get_post_meta($order -> order_id, '_billing_first_name', true)) . ' ' . esc_html(get_post_meta($order -> order_id, '_billing_last_name', true)) . ' (guest)';
+				$sort_key = 0;
+				//$order -> billing_first_name
 				$order_index++;
 			}
+			
 
 			if ('0000-00-00 00:00:00' == dokan_get_date_created($the_order)) {
 				$t_time = $h_time = __('Unpublished', 'dokan-lite');
@@ -313,19 +356,35 @@ ORDER BY p.post_date ASC";
 					$h_time = get_the_time(__('Y/m/d  h:i:s A', 'dokan-lite'), dokan_get_prop($the_order, 'id'));
 			}
 			$items = '';
-
+			
+			// There will be one order per customer per vendor. So the following debug might show:
+			// Ingrid, Ingrid, Ingrid, Tom, Tom, etc...
+			//mz_pr($the_order->data['billing']['first_name']);
 			foreach ($the_order -> get_items() as $item_id => $item_data) {
 				$product = $item_data -> get_product();
 
 				if (is_object($product)) {
 					$product_name = $product -> get_name();
+					// If it's the farmdrop fee, don't include it in the report
 					if (strpos(strtolower($product_name), 'fee') !== false) {
 
 					} else {$item_quantity = $item_data -> get_quantity();
 						$store_info = dokan_get_store_info($order -> seller_id);
 						$vendor = $store_info['store_name'];
 						$item_total = $item_data -> get_total();
-						$items_all[] = array('id' => $product -> id, 'order_id' => $order -> order_id, 'customer_id' => $customer_id, 'customer' => $user . ' (Phone: ' . format_phone_number($customer_phone) . ')', 'order_date_post' => $date_order -> format('m/d/Y  h:i:s A'), 'order_date' => esc_html(apply_filters('post_date_column_time', dokan_date_time_format($h_time, true), dokan_get_prop($the_order, 'id'))), 'name' => $product_name, 'vendor' => $vendor, 'quantity' => $item_quantity, 'total' => $item_total);
+						// If it's not a user, do not add to items all
+						if ($sort_key === 0) continue;
+						$items_all[] = array('id' => $product -> id, 
+											'order_id' => $order -> order_id, 
+											'customer_id' => $customer_id, 
+											'customer_lastname' => $sort_key,
+											'customer' => $user_display . ' (Phone: ' . format_phone_number($customer_phone) . ')', 
+											'order_date_post' => $date_order -> format('m/d/Y  h:i:s A'), 
+											'order_date' => esc_html(apply_filters('post_date_column_time', dokan_date_time_format($h_time, true), dokan_get_prop($the_order, 'id'))), 
+											'name' => $product_name, 
+											'vendor' => $vendor, 
+											'quantity' => $item_quantity, 
+											'total' => $item_total);
 					}
 				}
 
@@ -335,20 +394,28 @@ ORDER BY p.post_date ASC";
 
 			// $orders_html .= '<tr>
 			// <td style="border-bottom: 1px solid #ddd;text-align:left;vertical-align:top;">' . esc_attr($the_order -> get_order_number()) . '</td><td style="border-bottom: 1px solid #ddd;text-align:left;vertical-align:top;">' . $items . '</td><td style="border-bottom: 1px solid #ddd;text-align:right;vertical-align:top;">' . $the_order -> get_formatted_order_total() . '</td>
-			// <td  style="border-bottom: 1px solid #ddd;text-align:left;vertical-align:top;">' . $user . '</td><td style="border-bottom: 1px solid #ddd;text-align:left;vertical-align:top;">' . esc_html(apply_filters('post_date_column_time', dokan_date_time_format($h_time, true), dokan_get_prop($the_order, 'id'))) . '</td></tr>';
+			// <td  style="border-bottom: 1px solid #ddd;text-align:left;vertical-align:top;">' . $user_display . '</td><td style="border-bottom: 1px solid #ddd;text-align:left;vertical-align:top;">' . esc_html(apply_filters('post_date_column_time', dokan_date_time_format($h_time, true), dokan_get_prop($the_order, 'id'))) . '</td></tr>';
 		}
 
 		$array_consolidated = array();
+		// Loop through the item's all array and build a single key for each customer
 		foreach ($items_all as $item) {
 			if (isset($array_consolidated[$item['customer_id']])) {
 				$array_consolidated[$item['customer_id']]['items'][] = array('name' => $item['name'], 'vendor' => $item['vendor'], 'quantity' => $item['quantity'], 'total' => $item['total'], 'date' => $item['order_date_post']);
 
 			} else {
 				$array_consolidated[$item['customer_id']]['customer'] = $item['customer'];
+				$array_consolidated[$item['customer_id']]['customer_lastname'] = $item['customer_lastname'];
 				$array_consolidated[$item['customer_id']]['items'] = array( array('name' => $item['name'], 'vendor' => $item['vendor'], 'quantity' => $item['quantity'], 'total' => $item['total'], 'date' => $item['order_date_post']));
 			}
 		}
 		//inspect($array_consolidated);
+		usort($array_consolidated, function($a, $b) {
+			if ($a == $b) {
+				return 0;
+			}
+			return ($a['customer_lastname'] < $b['customer_lastname']) ? -1 : 1;
+		});
 		$messages[] = inspect($array_consolidated, false, true);
 		if ($array_consolidated) {
 			$page_break = false;
