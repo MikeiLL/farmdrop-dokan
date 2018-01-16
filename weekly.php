@@ -171,68 +171,15 @@
 		$('input[type=text].date').datepicker({
 			autoHide : true
 		});
-		//updateRecords(0);
+
 	}); 
 </script>
 <?php
-// $seller_id = get_current_user_id();
-// $date = new DateTime('11/01/2017');
-// $start_date = sanitize_key($date -> format('Y-m-d'));
-// //
-// $today = new DateTime();
-// $end_date = sanitize_key($today -> format('Y-m-d'));
-// $items_all = array();
-//
-// $active_sellers = dokan_get_sellers(array('number' => -1, ));
-// $sellers = array_unique(array_keys($active_sellers));
-// inspect($sellers);
-// foreach ($sellers as $seller_id => $seller_products) {
-// //
-// $user_orders = dokan_get_seller_orders_by_date($start_date, $end_date, $seller_id, $status = 'all');
-// if ($user_orders) {
-// //$messages[] = sizeof($orders);
-// foreach ($user_orders as $order) {
-// $the_order = new WC_Order($order -> order_id);
-// $messages[] = $order -> order_id;
-// foreach ($the_order -> get_items() as $item_id => $item_data) {
-// $product = $item_data -> get_product();
-// $product_name = $product -> get_name();
-// $item_quantity = $item_data -> get_quantity();
-// $item_total = $item_data -> get_total();
-// $items_all[] = array('id' => $product -> id, 'name' => $product_name, 'quantity' => $item_quantity, 'total' => $item_total);
-// }
-// }
-// inspect($items_all);
-// $array_consolidated = array();
-// foreach ($items_all as $item) {
-// if (isset($array_consolidated[$item['id']])) {
-// $array_consolidated[$item['id']]['quantity'] += $item['quantity'];
-// $array_consolidated[$item['id']]['total'] += $item['total'];
-// } else
-// $array_consolidated[$item['id']] = array('name' => $item['name'], 'quantity' => $item['quantity'], 'total' => $item['total']);
-// }
-// inspect($array_consolidated);
-// }
-//}
+
 global $wpdb;
-// $end_date = date('Y-m-d 00:00:00', strtotime($end_date));
-// $end_date = date('Y-m-d h:i:s', strtotime($end_date . '-1 minute'));
-// $start_date = date('Y-m-d', strtotime($start_date));
- //$status_where = ($status == 'all') ? '' : $wpdb -> prepare(' AND order_status = %s', $status);
+
 	$status_where = $wpdb -> prepare(' AND order_status = %s', 'wc-completed');
  $date_query = $wpdb -> prepare(' AND DATE( p.post_date ) >= %s AND DATE( p.post_date ) <= %s', '2018-01-06', '2018-01-13');
- /*$sql = "SELECT * FROM (
- SELECT do.*, p.post_date, p.post_author, MAX(CASE WHEN um.meta_key = 'last_name' THEN meta_value END) AS last_name
- FROM {$wpdb->prefix}dokan_orders AS do
- LEFT JOIN $wpdb->posts p ON do.order_id = p.ID
- LEFT JOIN $wpdb->users u on p.post_author = u.ID
- INNER JOIN $wpdb->usermeta as um ON p.post_author = um.user_id
- WHERE
- p.post_status != 'trash'
- $date_query
- GROUP BY do.order_id
- ORDER BY p.post_date ASC)
- AS tmp_table GROUP BY LOWER(`last_name`)";*/
  	$sql = "SELECT do.*, p.post_date
 FROM {$wpdb->prefix}dokan_orders AS do
 LEFT JOIN $wpdb->posts p ON do.order_id = p.ID
@@ -242,10 +189,9 @@ $status_where
 $date_query
 GROUP BY do.order_id
 ORDER BY p.post_date ASC";
- //do.seller_id = %d AND
+
  $orders = $wpdb -> get_results($sql);
 
- //mz_pr($sql);
  $orders_html .= '';
 
 	if ($orders) {
@@ -327,17 +273,10 @@ ORDER BY p.post_date ASC";
 
 			}
 
-			//$messages[] = inspect($items_all, false, true);
-
-			// $orders_html .= '<tr>
-			// <td style="border-bottom: 1px solid #ddd;text-align:left;vertical-align:top;">' . esc_attr($the_order -> get_order_number()) . '</td><td style="border-bottom: 1px solid #ddd;text-align:left;vertical-align:top;">' . $items . '</td><td style="border-bottom: 1px solid #ddd;text-align:right;vertical-align:top;">' . $the_order -> get_formatted_order_total() . '</td>
-			// <td  style="border-bottom: 1px solid #ddd;text-align:left;vertical-align:top;">' . $user_display . '</td><td style="border-bottom: 1px solid #ddd;text-align:left;vertical-align:top;">' . esc_html(apply_filters('post_date_column_time', dokan_date_time_format($h_time, true), dokan_get_prop($the_order, 'id'))) . '</td></tr>';
 		}
 
 		$array_consolidated = array();
-		mz_pr($items_all[0]);
-		mz_pr($items_all[1]);
-		mz_pr($items_all[2]);
+		
 		// Loop through the item's all array and build a single key for each customer
 		foreach ($items_all as $item) {
 			if (isset($array_consolidated[$item['customer_id']])) {
