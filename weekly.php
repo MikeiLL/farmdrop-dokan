@@ -49,7 +49,7 @@
                     <a id="pdf_link" href="javascript:" target="_blank" class="block button fullwidth inline">Open Report</a>
                 </div>
             </div>
-            <?php if ( current_user_can( 'manage_options' ) ) {
+            <?php if ( current_user_can('administrator') ) {
             ?>
             <br/>
             <br/>

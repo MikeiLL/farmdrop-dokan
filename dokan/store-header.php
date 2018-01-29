@@ -1,5 +1,5 @@
 <?php
-$store_user =    dokan() -> vendor -> get(get_query_var('author'));
+$store_user =   dokan() -> vendor -> get(get_query_var('author'));
 $store_info = $store_user -> get_shop_info();
 $social_info = $store_user -> get_social_profiles();
 $store_tabs = dokan_get_store_tabs($store_user -> get_id());
@@ -127,7 +127,14 @@ if ('layout3' === $profile_layout) {
                                 <?php } ?>
                             </ul>
                         </div>
-                    <?php } ?>
+                    <?php }
+							// $userdata = get_user_meta($store_user -> get_id());
+							// $description = $userdata['description'][0];
+							// if($description){
+							// echo '<a class="centertext coolbutton" href="#" id="link-story">Our Story</a>';//<div class="hidden" id="bio">'.$description.'</div>'
+							// echo '<div id="pop-story" class="pop hiding" style="display: none;"><a class="closepop" href="#"></a><div class="wrap-modal"><div class="modal-pop padded"><h3 class="centertext">Our Story</h3><div class="padded">'.$description.'</div></div></div></div>';
+							// }
+						?>
 </div> <!-- .profile-info -->
 </div><!-- .profile-info-summery -->
 </div><!-- .profile-info-summery-wrapper -->
@@ -135,8 +142,6 @@ if ('layout3' === $profile_layout) {
 </div> <!-- .profile-frame -->
 
 <?php
-
-
 if ( $store_tabs ) { ?>
 <div class="dokan-store-tabs<?php echo $no_banner_class_tabs; ?>">
 <ul class="dokan-list-inline">
@@ -154,4 +159,4 @@ if ( $store_tabs ) { ?>
 	//echo '<a class="centertext coolbutton" href="#" id="link-story">Our Story</a>';//<div class="hidden" id="bio">'.$description.'</div>'
 	echo '<h3 class="centertext">Our Story</h3><div class="padded">'.$description.'</div>';
 	}
-?>
+	?>

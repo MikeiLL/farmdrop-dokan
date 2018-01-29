@@ -23,7 +23,7 @@ if (have_posts()) {
 		echo '<ul class="columns">';
 		echo '<li class="w33 padded centertext"><div class="step"><span>1</span></div><h3>Shop</h3><h4>Fill your cart anytime during the open markets days of Saturday thru Friday.</h4></li>';
 		echo '<li class="w33 padded centertext"><div class="step"><span>2</span></div><h3>Pay Online</h3><h4>Choose from multiple producers and pay online through Stripe for the best local food while supporting food security.</h4></li>';
-		echo '<li class="w33 padded centertext"><div class="step"><span>3</span></div><h3>Pick Up</h3><h4>Your order will be at Floret on Friday between 2PM and 6PM together with the Climate to Thrive Winter Farm Stand.</h4></li>';
+		echo '<li class="w33 padded centertext"><div class="step"><span>3</span></div><h3>Pick Up</h3><h4>Your order will be ready for pick up at Fairwinds Florist on Thursday between 2PM and 5PM.</h4></li>';
 
 		echo '</ul>';
 		echo '</div>';
@@ -36,7 +36,14 @@ if (have_posts()) {
 			$status = '<h3 class="market">Open</h3>';
 		} else {
 			$status = '<h3 class="market">Closed</h3>';
-			echo '<div id="pop-closed" class="pop"><div class="wrap-modal"><div class="modal-pop padded centertext"><h3 class="centertext">Thank you for visiting MDI FarmDrop</h3><div class="padded">We are open from Saturday 10am - Thursday 10am. Please pick up your order on Friday 2-6pm at Floret Florist Shop  (1043 Main Street, Mount Desert, Maine (207) 460-9162)<br/>Contact us with any questions: farmdrop@healthyacadia.org</div></div></div></div>';
+			echo '<div id="pop-closed" class="pop"><div class="wrap-modal"><div class="modal-pop padded centertext"><h3 class="centertext">Thank you for visiting Blue Hill FarmDrop</h3><div class="padded">';
+
+			$pop_message = get_field('closed_pop_message', 'options');
+			echo $pop_message;
+			//echo 'We are open from Saturday 10am - Wednesday 10am.<br/>Please pick up your order on Thursday 2-5 pm at Fairwinds Florist – 5 Main St, Blue Hill.<br/>Contact us with any questions: farmdrop@healthyacadia.org';
+			echo '</div>';
+			echo '<div class="padded">' . do_shortcode('[mc4wp_form id="895"]') . '</div>';
+			echo '</div></div></div>';
 		}
 
 		echo '<a href="/producer/"><div class="centerall featured" style="background-image:url(' . get_stylesheet_directory_uri() . '/images/slide-market.jpg)"><div class="center"><div class="centered block"><h2>The Market</h2>' . $status . '</div></div></div></a>';

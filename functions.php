@@ -2,6 +2,9 @@
 
 include_once ('includes/ajax.php');
 
+/*
+ * Display object within comments of HTML or JS page
+*/
 $messages = Array();
 function inspect($object, $script = false, $to_string = false) {
 	if ($to_string == true) {
@@ -22,10 +25,17 @@ function inspect($object, $script = false, $to_string = false) {
 
 };
 
+/*
+ * Stop process and view object
+ */
 function kill($data) {
 	die(var_dump($data));
 }
 
+/*
+ * Write object out to a file.
+ * Useful for testing ajax functions
+ */
 if (!function_exists('mZ_write_to_file')) {
 	/**
 	 * Write message out to file
@@ -47,6 +57,9 @@ if (!function_exists('mZ_write_to_file')) {
 
 }
 
+/* 
+ *
+ */
 if (!function_exists('mz_pr')) {
 	/**
 	 * Write message out to file
@@ -72,6 +85,12 @@ function my_theme_enqueue_styles() {
 add_action('wp_enqueue_scripts', 'my_theme_enqueue_styles', 20);
 
 add_action('user_register', 'myplugin_registration_save', 10, 1);
+/*
+ * Every user who is NOT a customer or admin, make them a "shop_manager"
+ *
+ * Workaround because Dokan was creating the wrong kind of user
+ * May not be necessary for a clean install.
+ */
 function myplugin_registration_save($user_id) {
 	$user = get_user_by('id', $user_id);
 
@@ -84,10 +103,21 @@ function myplugin_registration_save($user_id) {
 
 //error_reporting(0);
 
+/*
+ * If ACF is activated, add our Options page to receive the ACF fields
+ * 
+ * The ACF Location setting of the fields will set to display this group
+ * if Options Page is equal to General Settings, or whatever is set in the array below
+ * for "menu_title". 
+ */
 if (function_exists('acf_add_options_page')) {
 	acf_add_options_page(array('page_title' => 'General Settings', 'menu_title' => 'General Settings', 'menu_slug' => 'theme-general-settings', 'capability' => 'edit_posts', 'redirect' => false));
 }
 
+/*
+ * Following two functions, closetags and get_excerpt_trim are used to 
+ * allow HTML in excerpts
+ */
 function closetags($input) {
 	// Close <br> tags
 	$buffer = str_replace("<br>", "<br/>", $input);
@@ -129,8 +159,10 @@ function get_excerpt_trim($content, $charlength) {
 	}
 }
 
+/*
+ * Following could be used to do custom WooCommerce styling
+ */
 //add_filter('woocommerce_enqueue_styles', '__return_false');
-
 // add_filter( 'woocommerce_enqueue_styles', 'jk_dequeue_styles' );
 // function jk_dequeue_styles( $enqueue_styles ) {
 // unset( $enqueue_styles['woocommerce-general'] );	// Remove the gloss
@@ -141,8 +173,17 @@ function get_excerpt_trim($content, $charlength) {
 
 // Add filter
 add_filter('woocommerce_placeholder_img_src', 'growdev_custom_woocommerce_placeholder', 10);
+
 /**
  * Function to return new placeholder image URL.
+ * We need to pull in the image from a field so that it doesn't 
+ * need to be hard-coded
+ *
+ * I would like to add the necessary fields programatically
+ * so that new users don't need to do it themselves
+ * I imagine we want to also bundle the required plugins via
+ * 
+ * see: https://www.advancedcustomfields.com/resources/register-fields-via-php/
  */
 function growdev_custom_woocommerce_placeholder($image_url) {
 	$image_url = 'http://bh.farmdrop.us/wp-content/uploads/2017/12/placeholder_product-1.jpg';
@@ -150,14 +191,19 @@ function growdev_custom_woocommerce_placeholder($image_url) {
 	return $image_url;
 }
 
-add_filter('loop_shop_per_page', 'new_loop_shop_per_page', 20);
-
+/*
+ * 	
+ * Return the number of products you wanna show per page.
+ *
+ * @param interger $cols contains the current number of products per page 
+ * based on the value stored in Options -> Reading
+ * src: https://stackoverflow.com/a/22837369/2223106
+ */
 function new_loop_shop_per_page($cols) {
-	// $cols contains the current number of products per page based on the value stored on Options -> Reading
-	// Return the number of products you wanna show per page.
 	$cols = 12;
 	return $cols;
 }
+add_filter('loop_shop_per_page', 'new_loop_shop_per_page', 20);
 
 function add_extra_fields($current_user, $profile_info) {
 	//inspect($current_user);
@@ -267,18 +313,24 @@ function add_custom_total_price($cart_object) {
 	}
 }
 
-add_action('woocommerce_before_checkout_form', 'wnd_checkout_message', 10);
 
+/*
+ * This message is shown at top of Checkout page and explains Stripe a little bit.
+ */
 function wnd_checkout_message() {
 	echo '<div class="wnd-checkout-message"><h3>Returning FarmDrop customer? Please click <strong><a href="/my-account">here</a></strong> to log in.</h3></div>';
 	echo '<div class="distanttop"><ul>
 	<li>We use Stripe as a Payment method, and if you are making a first time order, you might hear from your financial institution to make sure that you are in fact the one making this payment.</li><li>FarmDrop is a direct-to-consumer marketplace and all charges on your bank account or credit card statement will reflect the individual payments to the persons or business you are purchasing from</li><li>Healthy Acadia charges a 10% FarmDrop Handling Fee on all purchases, which gets added at checkout, and goes towards supporting our food security programs.</li></ul></div>';
 }
+add_action('woocommerce_before_checkout_form', 'wnd_checkout_message', 10);
 
-//add_action('woocommerce_new_order', 'action_woocommerce_new_order', 1, 1);
-
-add_action('woocommerce_thankyou', 'action_woocommerce_new_order');
-
+/*
+ * Hook into Woocommerce order email function, using the Template in WP General Settings page
+ * and modify it after user clicks CHECKOUT, switching the status to "processing", then send it to the addresses specified below. 
+ * Vendors need to manually update the order status to "complete"
+ * TODO: Consider adding another one of these for Admin, which would also involve cloning the AFC fields in the 
+ * General Settings field group which shows up on the WP General Settings page.
+ */
 function action_woocommerce_new_order($order_id) {
 	//global $woocommerce;
 
@@ -313,6 +365,7 @@ function action_woocommerce_new_order($order_id) {
 
 		$products_html = $products_html . '</tbody><tfoot><tr><th colspan="3" scope="row" style="border-top:solid 1px #ddd;">Subtotal:</th><td style="text-align:right;border-top:solid 1px #ddd;">$' . number_format($order -> get_subtotal(), 2) . '</td></tr><tr><th colspan="2" scope="row"></th><td></td></tr><tr><th colspan="3" scope="row" style="border-top:solid 1px #ddd;">Total:</th><td style="text-align:right;border-top:solid 1px #ddd;">$' . number_format($order -> get_total(), 2) . '</td></tr></tfoot></table>';
 
+		// The following must match the variables in the ACF Template.
 		$variables = array('client' => $name, 'order_number' => $order_number, 'order_date' => $order_date, 'order_table' => $products_html);
 
 		$template = get_field('customer_email', 'options');
@@ -322,9 +375,34 @@ function action_woocommerce_new_order($order_id) {
 		}
 
 		wp_mail($email_customer, $subject, $template, array('Content-Type: text/html; charset=UTF-8'));
+
+		//admin
+		$user_info;
+		if ($order -> get_user_id()) {
+			$user_info = get_userdata($order -> get_user_id());
+		}
+		$customer = '';
+		if (!empty($user_info)) {
+			if ($user_info -> first_name || $user_info -> last_name) {
+				$customer .= esc_html($user_info -> first_name . ' ' . $user_info -> last_name);
+			} else {
+				$customer .= esc_html($user_info -> display_name);
+			}
+		} else {
+			$customer = esc_html(get_post_meta($order -> order_id, '_billing_first_name', true)) . ' ' . esc_html(get_post_meta($order -> order_id, '_billing_last_name', true)) . ' (guest)';
+		}
+
+		wp_mail('farmdrop@healthyacadia.org', "New " . get_bloginfo('description') . " customer order from $customer", $template, array('Content-Type: text/html; charset=UTF-8'));
 	}
 };
 
+/*
+ * Hook into Woocommerce order email function, using the WP General Settings page
+ * and modify it, similar to action_woocommerce_new_order when order status has ben updated to "complete" by vendor,
+ * then send it to the addresses specified below. 
+ * This order goes only to the customer.
+ * TODO: Consider adding another one of these for Admin
+ */
 function action_woocommerce_order_status_completed($order_id) {
 	//error_log("Order complete for order $order_id", 0);
 
@@ -372,7 +450,8 @@ function action_woocommerce_order_status_completed($order_id) {
 		wp_mail($email_customer, $subject, $template, array('Content-Type: text/html; charset=UTF-8'));
 	}
 }
-
+//add_action('woocommerce_new_order', 'action_woocommerce_new_order', 1, 1);
+add_action('woocommerce_thankyou', 'action_woocommerce_new_order');
 add_action('woocommerce_order_status_completed', 'action_woocommerce_order_status_completed', 10, 1);
 
 //include_once ('includes/webfix-email.php');
@@ -390,26 +469,39 @@ add_action('woocommerce_order_status_completed', 'action_woocommerce_order_statu
 // $products_html = $products_html . '<tbody><tr><td>' . $title . '</td><td>' . $quantity . '</td><td><span><span>$</span>' . $price . '</span></td></tr></tbody>';
 // }
 
-add_filter('dokan_query_var_filter', 'dokan_load_document_menu');
-function dokan_load_document_menu($query_vars) {
+/*
+ * Make a new querie variable available to dokan
+ */
+add_filter('dokan_query_var_filter', 'farmdrop_load_document_menu');
+function farmdrop_load_document_menu($query_vars) {
 	$query_vars['weekly'] = 'weekly';
 	return $query_vars;
 }
 
-add_filter('dokan_get_dashboard_nav', 'dokan_add_help_menu');
-function dokan_add_help_menu($urls) {
+/*
+ * Add new item to Dokan Dashboard menu (in Vendor dashboard Top Right)
+ */
+add_filter('dokan_get_dashboard_nav', 'farmdrop_add_help_menu');
+function farmdrop_add_help_menu($urls) {
 	$urls['weekly'] = array('title' => __('Weekly Orders', 'dokan'), 'icon' => '<i class="fa fa-user"></i>', 'url' => dokan_get_navigation_url('weekly'), 'pos' => 41);
 	return $urls;
 }
 
-add_action('dokan_load_custom_template', 'dokan_load_template');
-function dokan_load_template($query_vars) {
+/*
+ * Pull in our weekly.php page when called from help menu.
+ */
+add_action('dokan_load_custom_template', 'farmdrop_load_weekly_orders_template');
+function farmdrop_load_weekly_orders_template($query_vars) {
 	if (isset($query_vars['weekly'])) {
 		require_once dirname(__FILE__) . '/weekly.php';
 		exit();
 	}
 }
 
+/*
+ * Format phone numbers consistently.
+ * Used in weekly reports.
+ */
 function format_phone_number($phone, $international = false) {
 	$format = "/(?:(?:\+?1\s*(?:[.-]\s*)?)?(?:\(\s*([2-9]1[02-9]|[2-9][02-8]1|[2-9][02-8][02-9])\s*\)|([2-9]1[02-9]|[2-9][02-8]1|[2-9][02-8][02-9]))\s*(?:[.-]\s*)?)?([2-9]1[02-9]|[2-9][02-9]1|[2-9][02-9]{2})\s*(?:[.-]\s*)?([0-9]{4})(?:\s*(?:#|x\.?|ext\.?|extension)\s*(\d+))?$/";
 

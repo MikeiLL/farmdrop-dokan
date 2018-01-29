@@ -26,8 +26,10 @@ function save_report() {
 		//$order_date = NULL;
 	}
 
-	$today = new DateTime();
-	$end_date = sanitize_key($today -> format('Y-m-d'));
+	$start_date = date('Y-m-d', strtotime($start_date));
+
+	$tomorrow = date("Y-m-d", strtotime("+1 day"));
+	$end_date = date('Y-m-d 00:00:00', strtotime($tomorrow));
 
 	$user_orders = dokan_get_seller_orders_by_date($start_date, $end_date, $seller_id, 'wc-completed');
 
@@ -236,15 +238,14 @@ function print_orders() {
 		$start_date = sanitize_key($date -> format('Y-m-d'));
 	}
 
-	$today = new DateTime();
-	$end_date = sanitize_key($today -> format('Y-m-d'));
+	$start_date = date('Y-m-d', strtotime($start_date));
+
+	$tomorrow = date("Y-m-d", strtotime("+1 day"));
+	$end_date = date('Y-m-d 00:00:00', strtotime($tomorrow));
 
 	global $wpdb;
-	$end_date = date('Y-m-d 00:00:00', strtotime($end_date));
-	$end_date = date('Y-m-d h:i:s', strtotime($end_date . '-1 minute'));
-	$start_date = date('Y-m-d', strtotime($start_date));
 	$status_where = $wpdb -> prepare(' AND order_status = %s', 'wc-completed');
-	$date_query = $wpdb -> prepare(' AND DATE( p.post_date ) >= %s AND DATE( p.post_date ) <= %s', $start_date, $end_date);
+	$date_query = $wpdb -> prepare(' AND DATE( p.post_date ) >= %s AND DATE( p.post_date ) < %s', $start_date, $end_date);
 	$sql = "SELECT do.*, p.post_date
 FROM {$wpdb->prefix}dokan_orders AS do
 LEFT JOIN $wpdb->posts p ON do.order_id = p.ID
@@ -255,6 +256,9 @@ $date_query
 GROUP BY do.order_id
 ORDER BY p.post_date ASC";
 	//do.seller_id = %d AND
+
+	$messages[] = 'end_date:' . $end_date;
+
 	$orders = $wpdb -> get_results($sql);
 	function array_sort($array, $on, $order = SORT_ASC) {
 
@@ -306,7 +310,7 @@ ORDER BY p.post_date ASC";
 	// </tr>
 	// </thead>';
 
-	 $orders_html .= '';
+	$orders_html .= '';
 
 	if ($orders) {
 		$order_index = 0;
@@ -332,17 +336,17 @@ ORDER BY p.post_date ASC";
 					$user_display .= esc_html($user_info -> first_name . ' ' . $user_info -> last_name);
 				} else {
 					$user_display .= esc_html($user_info -> display_name);
-				}			} else {
+				}
+			} else {
 				// This is not a user, it's a guest which we are no longer allowing.
 				// Should we generate an error message?
-				// Potentially just remove it 
+				// Potentially just remove it
 				$customer_id = $stamp_orders . sprintf('%04d', $order_index);
 				$user = esc_html(get_post_meta($order -> order_id, '_billing_first_name', true)) . ' ' . esc_html(get_post_meta($order -> order_id, '_billing_last_name', true)) . ' (guest)';
 				$sort_key = 0;
 				//$order -> billing_first_name
 				$order_index++;
 			}
-			
 
 			if ('0000-00-00 00:00:00' == dokan_get_date_created($the_order)) {
 				$t_time = $h_time = __('Unpublished', 'dokan-lite');
@@ -356,7 +360,7 @@ ORDER BY p.post_date ASC";
 					$h_time = get_the_time(__('Y/m/d  h:i:s A', 'dokan-lite'), dokan_get_prop($the_order, 'id'));
 			}
 			$items = '';
-			
+
 			// There will be one order per customer per vendor. So the following debug might show:
 			// Ingrid, Ingrid, Ingrid, Tom, Tom, etc...
 			//mz_pr($the_order->data['billing']['first_name']);
@@ -373,18 +377,9 @@ ORDER BY p.post_date ASC";
 						$vendor = $store_info['store_name'];
 						$item_total = $item_data -> get_total();
 						// If it's not a user, do not add to items all
-						if ($sort_key === 0) continue;
-						$items_all[] = array('id' => $product -> id, 
-											'order_id' => $order -> order_id, 
-											'customer_id' => $customer_id, 
-											'customer_lastname' => $sort_key,
-											'customer' => $user_display . ' (Phone: ' . format_phone_number($customer_phone) . ')', 
-											'order_date_post' => $date_order -> format('m/d/Y  h:i:s A'), 
-											'order_date' => esc_html(apply_filters('post_date_column_time', dokan_date_time_format($h_time, true), dokan_get_prop($the_order, 'id'))), 
-											'name' => $product_name, 
-											'vendor' => $vendor, 
-											'quantity' => $item_quantity, 
-											'total' => $item_total);
+						if ($sort_key === 0)
+							continue;
+						$items_all[] = array('id' => $product -> id, 'order_id' => $order -> order_id, 'customer_id' => $customer_id, 'customer_lastname' => $sort_key, 'customer' => $user_display . ' (Phone: ' . format_phone_number($customer_phone) . ')', 'order_date_post' => $date_order -> format('m/d/Y  h:i:s A'), 'order_date' => esc_html(apply_filters('post_date_column_time', dokan_date_time_format($h_time, true), dokan_get_prop($the_order, 'id'))), 'name' => $product_name, 'vendor' => $vendor, 'quantity' => $item_quantity, 'total' => $item_total);
 					}
 				}
 
